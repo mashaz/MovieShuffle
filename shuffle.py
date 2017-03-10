@@ -5,20 +5,20 @@ __auther__ = 'xiaohuahu94@gmail.com'
 
 '''
 todos:
-自己想看的电影 和 关注的人看过的电影
+shuffle自己想看的电影 和 关注的人看过的电影
 自动下载 aria2
 自动标记
+compare:看过的 交集 ，重合的去掉，未重合的加权随机
+从csv中导出用户 共同爱好比较
 '''
 
 import requests
 from bs4 import BeautifulSoup
-import urllib,urllib2
 import re
 import os
 import sys
 import time
 import random
-import sqlite3
 
 reload(sys)
 sys.setdefaultencoding('utf-8')   # note
@@ -84,7 +84,7 @@ def UseStyle(string, mode = '', fore = '', back = ''):
 
 
 
-def Login():  
+def GetCookies():  
 	f = open('cookies.txt','r')
 	cookies = {}
 	for line in f.read().split(','):
@@ -179,9 +179,16 @@ def GetAverageScore(mid):
 	score = re_s.findall(res.content)[0].lstrip('average": ')
 	return score 
 
-def Compare():
-	pass
-
+def Compare(mid,uid):
+	cookies = GetCookies()
+	mlist = GetWatchedList(mid)
+	ulist = GetWatchedList(uid)
+	same = 0 
+	for item in mlist:
+		for itemx in ulist:
+			if str(item) == str(itemx):
+				same += 1
+	print same
 def GetMagnet(mname):
 	url = 'https://www.nimasou.info/l/'+str(mname)+'-hot-desc-1'
 	headers={'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'}
@@ -240,16 +247,36 @@ def main():
 				print 
 				print UseStyle('1. python shuffle.py',fore='cyan')
 				print 
-				print UseStyle('1. python shuffle.py UID',fore='cyan')
+				print UseStyle('2. python shuffle.py UID',fore='cyan')
 				print
+				print UseStyle('3. python shuffle.py -d',fore='cyan')
+				print 
+				print UseStyle('4. python shuffle.py -c',fore='cyan')
+				print 
+		elif sys.argv[1].startswith('-'): 
+			option = sys.argv[1][1:] 
+			print option
+			if(option == 'd'):
+				print '输入关键词查找'
+				keyword = raw_input()
+				GetMagnet(keyword)
+			if(option == 'c'):
+				print '比较'
+				Compare('54005301','50650526')
 			    
 		else:
-			m_name = Shuffle('54005301')
+			#50650526
+			uid = sys.argv[1]
+			m_name = Shuffle(uid)
+ 			names = m_name.split('/')
+ 			m_name = names[0]
+ 			print m_name
 			print UseStyle('输入y查询magnet,任意按键退出',fore='cyan')
 			x = raw_input()
-			if x == 'y':
+			if x == 'y' or x == 'Y' :
 				GetMagnet(m_name)
 			#GetMagnet('让子弹飞')
 if __name__ == '__main__':
 	main()
+
 	
